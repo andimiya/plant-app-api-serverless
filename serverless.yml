@@ -1,0 +1,12 @@
+org: andimiya
+app: plant-app
+service: nodejs-aws-lambda
+provider:
+  name: aws
+  runtime: nodejs18.x
+functions:
+  app:
+    handler: dist/app.handler
+    events:
+      - http: ANY /
+      - http: ANY /{proxy+}
