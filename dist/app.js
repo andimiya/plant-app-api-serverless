@@ -4,14 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-require("dotenv").config();
+// require("dotenv").config();
 const express_1 = __importDefault(require("express"));
 const serverless_http_1 = __importDefault(require("serverless-http"));
 const routes_1 = __importDefault(require("./routes"));
 // import bodyParser from "body-parser";
-const cors = require("cors");
+// const cors = require("cors");
 // const { auth } = require("express-oauth2-jwt-bearer");
-const NextAuth = require("next-auth").default;
+// const NextAuth = require("next-auth").default;
 // create the server and setup routes
 const app = (0, express_1.default)();
 // const cookieParser = require("cookie-parser");
@@ -19,12 +19,12 @@ const app = (0, express_1.default)();
 // app.use(cookieParser());
 app.use(express_1.default.json());
 // app.use(bodyParser.json());
-const corsOptions = {
-    origin: "*",
-    credentials: true,
-    optionSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: "*",
+//   credentials: true, //access-control-allow-credentials:true
+//   optionSuccessStatus: 200,
+// };
+// app.use(cors(corsOptions));
 // app.use((req, res, next) => {
 //   if (!req.url.startsWith(baseUrl)) {
 //     return next();

@@ -1,13 +1,13 @@
-require("dotenv").config();
+// require("dotenv").config();
 import express from "express";
 import serverless from "serverless-http";
 
 import routes from "./routes";
 
 // import bodyParser from "body-parser";
-const cors = require("cors");
+// const cors = require("cors");
 // const { auth } = require("express-oauth2-jwt-bearer");
-const NextAuth = require("next-auth").default;
+// const NextAuth = require("next-auth").default;
 
 // create the server and setup routes
 const app = express();
@@ -17,12 +17,12 @@ const app = express();
 app.use(express.json());
 // app.use(bodyParser.json());
 
-const corsOptions = {
-  origin: "*",
-  credentials: true, //access-control-allow-credentials:true
-  optionSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: "*",
+//   credentials: true, //access-control-allow-credentials:true
+//   optionSuccessStatus: 200,
+// };
+// app.use(cors(corsOptions));
 
 // app.use((req, res, next) => {
 //   if (!req.url.startsWith(baseUrl)) {

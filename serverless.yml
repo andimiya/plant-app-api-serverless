@@ -1,12 +1,22 @@
 org: andimiya
-app: plant-app
+app: plant-app-api
 service: nodejs-aws-lambda
+useDotenv: true
 provider:
   name: aws
   runtime: nodejs18.x
+  environment:
+    PLANT_TABLE: ${env:PLANT_TABLE}
 functions:
   app:
     handler: dist/app.handler
     events:
       - http: ANY /
       - http: ANY /{proxy+}
+plugins:
+  - serverless-offline
+  - "serverless-plugin-typescript-express"
+custom:
+  serverless-offline:
+    httpPort: 4000
+    allowCache: true

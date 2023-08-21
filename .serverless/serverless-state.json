@@ -7,6 +7,9 @@
     "provider": {
       "name": "aws",
       "runtime": "nodejs18.x",
+      "environment": {
+        "PLANT_TABLE": "plants_prod"
+      },
       "stage": "dev",
       "region": "us-east-1",
       "versionFunctions": true,
@@ -86,7 +89,7 @@
           "AppLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/nodejs-aws-lambda-dev-app"
+              "LogGroupName": "/aws/lambda/nodejs-aws-lambda-prod-app"
             }
           },
           "IamRoleLambdaExecution": {
@@ -115,7 +118,7 @@
                       "-",
                       [
                         "nodejs-aws-lambda",
-                        "dev",
+                        "prod",
                         "lambda"
                       ]
                     ]
@@ -132,7 +135,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nodejs-aws-lambda-dev*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nodejs-aws-lambda-prod*:*"
                           }
                         ]
                       },
@@ -143,7 +146,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nodejs-aws-lambda-dev*:*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nodejs-aws-lambda-prod*:*:*"
                           }
                         ]
                       }
@@ -157,7 +160,7 @@
                   "-",
                   [
                     "nodejs-aws-lambda",
-                    "dev",
+                    "prod",
                     {
                       "Ref": "AWS::Region"
                     },
@@ -167,6 +170,52 @@
               }
             }
           },
+          "EnterpriseLogAccessIamRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "AWS": "arn:aws:iam::802587217904:root"
+                    },
+                    "Action": "sts:AssumeRole",
+                    "Condition": {
+                      "StringEquals": {
+                        "sts:ExternalId": "ServerlessEnterprise-tQ2LMN1Kmm6n6f9cp8"
+                      }
+                    }
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "LogFilterAccess",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:FilterLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "AppLogGroup",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
           "AppLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -174,13 +223,18 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/nodejs-aws-lambda/dev/1692568968465-2023-08-20T22:02:48.465Z/nodejs-aws-lambda.zip"
+                "S3Key": "serverless/nodejs-aws-lambda/prod/1692580889908-2023-08-21T01:21:29.908Z/nodejs-aws-lambda.zip"
               },
-              "Handler": "dist/app.handler",
+              "Handler": "s_app.handler",
               "Runtime": "nodejs18.x",
-              "FunctionName": "nodejs-aws-lambda-dev-app",
+              "FunctionName": "nodejs-aws-lambda-prod-app",
               "MemorySize": 1024,
               "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PLANT_TABLE": "plants_prod"
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -192,20 +246,20 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersionUveTecWv1jqvHZ9JTdDVCiAGSATe16inOIII0X6Is": {
+          "AppLambdaVersionRW55tUAW3DsOG5yZavzqMj133d9i5smOKr0B1Jb5Sc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "awD72rDBMDL9KEZBopHz47UgDIF4XLw/nfsVW1U35l8="
+              "CodeSha256": "9sRX6LLQwu3A9ZdjSfQK6TNdOx0QSSW1guH0QyYE2o8="
             }
           },
           "ApiGatewayRestApi": {
             "Type": "AWS::ApiGateway::RestApi",
             "Properties": {
-              "Name": "dev-nodejs-aws-lambda",
+              "Name": "prod-nodejs-aws-lambda",
               "EndpointConfiguration": {
                 "Types": [
                   "EDGE"
@@ -324,13 +378,13 @@
               "AppLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1692568966568": {
+          "ApiGatewayDeployment1692580875570": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
                 "Ref": "ApiGatewayRestApi"
               },
-              "StageName": "dev"
+              "StageName": "prod"
             },
             "DependsOn": [
               "ApiGatewayMethodAny",
@@ -373,6 +427,153 @@
                 ]
               }
             }
+          },
+          "ApiGatewayLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/api-gateway/nodejs-aws-lambda-prod"
+            }
+          },
+          "CustomApiGatewayAccountCloudWatchRole": {
+            "Type": "Custom::ApiGatewayAccountRole",
+            "Version": 1,
+            "Properties": {
+              "ServiceToken": {
+                "Fn::GetAtt": [
+                  "CustomDashresourceDashapigwDashcwDashroleLambdaFunction",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "IamRoleCustomResourcesLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "prod",
+                        "nodejs-aws-lambda",
+                        "custom-resources-lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Join": [
+                            ":",
+                            [
+                              "arn",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              "iam:",
+                              {
+                                "Ref": "AWS::AccountId"
+                              },
+                              "role/*"
+                            ]
+                          ]
+                        },
+                        "Action": [
+                          "iam:AttachRolePolicy",
+                          "iam:CreateRole",
+                          "iam:ListAttachedRolePolicies",
+                          "iam:PassRole"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Resource": {
+                          "Fn::Join": [
+                            ":",
+                            [
+                              "arn",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              "apigateway:*::/account"
+                            ]
+                          ]
+                        },
+                        "Action": [
+                          "apigateway:GET",
+                          "apigateway:PATCH"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "CustomDashresourceDashapigwDashcwDashroleLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/nodejs-aws-lambda/prod/1692580889908-2023-08-21T01:21:29.908Z/custom-resources.zip"
+              },
+              "FunctionName": "nodejs-aws-lambda-prod-custom-resource-apigw-cw-role",
+              "Handler": "api-gateway-cloud-watch-role/handler.handler",
+              "MemorySize": 1024,
+              "Runtime": "nodejs16.x",
+              "Timeout": 180,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleCustomResourcesLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "IamRoleCustomResourcesLambdaExecution"
+            ]
+          },
+          "CWLSubFilterAppLogGroupUsEast1": {
+            "Type": "AWS::Logs::SubscriptionFilter",
+            "Properties": {
+              "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:tQ2LMN1Kmm6n6f9cp8#g6DpGBQR4H3dstNPKG#nodejs-aws-lambda#prod",
+              "FilterPattern": "?\"REPORT RequestId: \" ?\"SERVERLESS_ENTERPRISE\"",
+              "LogGroupName": {
+                "Ref": "AppLogGroup"
+              }
+            }
+          },
+          "CWLSubFilterApiGatewayLogGroupUsEast1": {
+            "Type": "AWS::Logs::SubscriptionFilter",
+            "Properties": {
+              "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:tQ2LMN1Kmm6n6f9cp8#g6DpGBQR4H3dstNPKG#nodejs-aws-lambda#prod",
+              "FilterPattern": "\"SLS_ACCESS_LOG\"",
+              "LogGroupName": {
+                "Ref": "ApiGatewayLogGroup"
+              }
+            }
           }
         },
         "Outputs": {
@@ -381,16 +582,27 @@
               "Ref": "ServerlessDeploymentBucket"
             },
             "Export": {
-              "Name": "sls-nodejs-aws-lambda-dev-ServerlessDeploymentBucketName"
+              "Name": "sls-nodejs-aws-lambda-prod-ServerlessDeploymentBucketName"
+            }
+          },
+          "EnterpriseLogAccessIamRole": {
+            "Value": {
+              "Fn::GetAtt": [
+                "EnterpriseLogAccessIamRole",
+                "Arn"
+              ]
+            },
+            "Export": {
+              "Name": "sls-nodejs-aws-lambda-prod-EnterpriseLogAccessIamRole"
             }
           },
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersionUveTecWv1jqvHZ9JTdDVCiAGSATe16inOIII0X6Is"
+              "Ref": "AppLambdaVersionRW55tUAW3DsOG5yZavzqMj133d9i5smOKr0B1Jb5Sc"
             },
             "Export": {
-              "Name": "sls-nodejs-aws-lambda-dev-AppLambdaFunctionQualifiedArn"
+              "Name": "sls-nodejs-aws-lambda-prod-AppLambdaFunctionQualifiedArn"
             }
           },
           "ServiceEndpoint": {
@@ -411,12 +623,12 @@
                   {
                     "Ref": "AWS::URLSuffix"
                   },
-                  "/dev"
+                  "/prod"
                 ]
               ]
             },
             "Export": {
-              "Name": "sls-nodejs-aws-lambda-dev-ServiceEndpoint"
+              "Name": "sls-nodejs-aws-lambda-prod-ServiceEndpoint"
             }
           }
         }
@@ -503,12 +715,27 @@
           }
         }
       },
+      "logs": {
+        "restApi": {
+          "format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourceId\":\"$context.resourceId\",\"resourcePath\":\"$context.resourcePath\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"status\":\"$context.status\",\"authLatency\":\"$context.authorizer.integrationLatency\",\"integrationLatency\":\"$context.integrationLatency\",\"integrationStatus\":\"$context.integrationStatus\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_ACCESS_LOG\",\"version\":\"1.0.0\"}"
+        }
+      },
       "vpc": {}
     },
+    "custom": {
+      "serverless-offline": {
+        "httpPort": 4000,
+        "allowCache": true
+      }
+    },
+    "plugins": [
+      "serverless-offline",
+      "serverless-plugin-typescript-express"
+    ],
     "pluginsData": {},
     "functions": {
       "app": {
-        "handler": "dist/app.handler",
+        "handler": "s_app.handler",
         "events": [
           {
             "http": "ANY /"
@@ -517,32 +744,52 @@
             "http": "ANY /{proxy+}"
           }
         ],
-        "name": "nodejs-aws-lambda-dev-app",
+        "name": "nodejs-aws-lambda-prod-app",
         "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersionUveTecWv1jqvHZ9JTdDVCiAGSATe16inOIII0X6Is"
+        "versionLogicalId": "AppLambdaVersionRW55tUAW3DsOG5yZavzqMj133d9i5smOKr0B1Jb5Sc"
       }
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
+      "org": "andimiya",
+      "app": "plant-app-api",
       "service": "nodejs-aws-lambda",
+      "useDotenv": true,
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
       "functions": {
-        "$ref": "$[\"service\"][\"functions\"]"
+        "app": {
+          "handler": "dist/app.handler",
+          "events": {
+            "$ref": "$[\"service\"][\"functions\"][\"app\"][\"events\"]"
+          },
+          "name": "nodejs-aws-lambda-prod-app"
+        }
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
       }
     },
+    "app": "plant-app-api",
+    "org": "andimiya",
     "layers": {},
-    "isDashboardMonitoringPreconfigured": false,
+    "isDashboardMonitoringPreconfigured": true,
+    "isDashboardAppPreconfigured": true,
+    "orgUid": "tQ2LMN1Kmm6n6f9cp8",
+    "appUid": "g6DpGBQR4H3dstNPKG",
     "artifact": "/Users/andreatakamiya/personal/plant-app-api-serverless/.serverless/nodejs-aws-lambda.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/nodejs-aws-lambda/dev/1692568968465-2023-08-20T22:02:48.465Z",
+    "artifactDirectoryName": "serverless/nodejs-aws-lambda/prod/1692580889908-2023-08-21T01:21:29.908Z",
     "artifact": "nodejs-aws-lambda.zip"
   }
 }

@@ -1,7 +1,8 @@
 import { Request, Response, Router } from "express";
 const { ObjectId } = require("mongodb");
-const formData = require("../data/formData.js");
-const PLANT_TABLE = process.env.PLANT_TABLE;
+// const formData = require("../../data/formData.json");
+// const PLANT_TABLE = process.env.PLANT_TABLE;
+const PLANT_TABLE = "plants_local";
 if (!PLANT_TABLE) {
   throw new Error("PLANT_TABLE not set");
 }
